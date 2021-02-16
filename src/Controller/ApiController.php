@@ -12,6 +12,8 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
+
+
 /**
  * @Route("/api", name="api")
  */
@@ -36,7 +38,7 @@ class ApiController extends AbstractController
     public function show(): Response
     {
         $articles = $this->articleRepo->findAll();
-        return ($this->json($articles,200));
+        return ($this->json($articles,200,[], ['groups' => 'app:show']));
         
     }
 
@@ -49,7 +51,7 @@ class ApiController extends AbstractController
     {       
             try {
                 $article = $this->articleRepo->find($id);
-                return ($this->json($article,200));
+                return ($this->json($article,200,[],['groups' => 'app:show']));
             } catch (\Throwable $th) {
                 return ($this->json(["status"=>400,"message"=>"error 404"],400));
             }
@@ -73,6 +75,7 @@ class ApiController extends AbstractController
             }
             $article->setName($articleSerialized->getName());
             $article->setDescription($articleSerialized->getDescription());
+            // $article->setUser($articleSerialized->getUser());
             $this->em->persist($article);
             $this->em->flush();
             return $this->json([
@@ -97,7 +100,7 @@ class ApiController extends AbstractController
         $articleJson = $request->getContent();
         try {
             $article = $serializer->deserialize($articleJson, Article::class,'json');
-
+            $articleUser = $article->getUser();
             $errors = $validator->validate($article);
 
             if(count($errors)>0){
@@ -132,5 +135,5 @@ class ApiController extends AbstractController
         ]);
     }
 
-    
+
 }
